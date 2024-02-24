@@ -90,13 +90,33 @@ class Program
     {
         Console.Write("Введите имя: ");
         string name = Console.ReadLine()!;
-        DateTime date = AddBirthdayDateTime();
 
-        if (date != DateTime.MinValue) // Проверка, что дата была успешно введена
+        DateTime date;
+        bool isValidDate = false;
+        int attempts = 0;
+        const int maxAttempts = 2;
+
+        do
         {
-            birthdays.Add(new Birthday { Name = name, Date = date });
-            Console.WriteLine("ДР успешно добавлен.");
-        }
+            Console.Write("Введите дату ДР (в формате ДД.ММ.ГГГГ): ");
+            if (DateTime.TryParse(Console.ReadLine(), out date))
+            {
+                isValidDate = true;
+            }
+            else
+            {
+                attempts++;
+                if (attempts > maxAttempts)
+                {
+                    Console.WriteLine($"Превышено максимальное количество попыток.");
+                    return;
+                }
+                Console.WriteLine($"Ошибка в формате даты. Введите дату в формате ДД.ММ.ГГГГ. Осталось {3 - attempts} попытки");
+            }
+        } while (!isValidDate);
+
+        birthdays.Add(new Birthday { Name = name, Date = date });
+        Console.WriteLine("ДР успешно добавлен.");
     }
 
     static void DeleteBirthday()
@@ -104,7 +124,7 @@ class Program
         Console.Write("Введите имя для удаления: ");
         string name = Console.ReadLine()!;
 
-        var birthdayToDelete = birthdays.Find(b => b.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        var birthdayToDelete = birthdays.Find(b => b != null && b.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
         if (birthdayToDelete != null)
         {
             birthdays.Remove(birthdayToDelete);
@@ -121,12 +141,12 @@ class Program
         Console.Write("Введите имя для редактирования: ");
         string name = Console.ReadLine()!;
 
-        var birthdayToEdit = birthdays.Find(b => b.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        var birthdayToEdit = birthdays.Find(b => b != null && b.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
         if (birthdayToEdit != null)
         {
             Console.Write("Введите новую дату ДР (в формате ДД.ММ.ГГГГ): ");
             if (DateTime.TryParse(Console.ReadLine(), out DateTime newDate))
-            {
+            {   
                 birthdayToEdit.Date = newDate;
                 Console.WriteLine("ДР успешно отредактирован.");
             }
@@ -176,35 +196,4 @@ class Program
             Console.WriteLine($"Ошибка при сохранении данных: {ex.Message}");
         }
     }
-
-    static DateTime AddBirthdayDateTime()
-    {
-        DateTime date;
-        bool isValidDate = false;
-        int attempts = 0;
-        const int maxAttempts = 2;
-
-        do
-        {
-            Console.Write("Введите дату ДР (в формате ДД.ММ.ГГГГ): ");
-            if (DateTime.TryParse(Console.ReadLine(), out date))
-            {
-                isValidDate = true;
-            }
-            else
-            {
-                attempts++;
-                Console.WriteLine($"attempts: {attempts}");
-                if (attempts > maxAttempts)
-                {
-                    Console.WriteLine($"Превышено максимальное количество попыток.");
-                    return DateTime.MinValue; // или любое другое значение по умолчанию
-                }
-                Console.WriteLine($"Ошибка в формате даты. Введите дату в формате ДД.ММ.ГГГГ. Осталось {maxAttempts - attempts} попыток");
-            }
-        } while (!isValidDate);
-
-        return date;
-    }
-
 }
